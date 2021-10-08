@@ -13,6 +13,7 @@ import { ModalInMobile, Button } from '../../components';
 import { BookingTimeForm } from '../../forms';
 
 import css from './BookingPanel.module.css';
+import AddToWishList from '../AddToWishList/AddToWishList';
 
 // This defines when ModalInMobile shows content as Modal
 const MODAL_BREAKPOINT = 1023;
@@ -59,6 +60,7 @@ const BookingPanel = props => {
     isOwnListing,
     unitType,
     onSubmit,
+    onUpdateWishList,
     title,
     subTitle,
     onManageDisableScrolling,
@@ -71,6 +73,7 @@ const BookingPanel = props => {
     lineItems,
     fetchLineItemsInProgress,
     fetchLineItemsError,
+    isWishListed,
   } = props;
 
   const price = listing.attributes.price;
@@ -127,8 +130,14 @@ const BookingPanel = props => {
             <h2 className={titleClasses}>{title}</h2>
             {subTitleText ? <div className={css.bookingHelp}>{subTitleText}</div> : null}
           </div>
+          {onUpdateWishList && (
+            <AddToWishList
+              onClick={onUpdateWishList}
+              listing={listing}
+              isWishListed={isWishListed}
+            />
+          )}
         </div>
-
         {showBookingTimeForm ? (
           <BookingTimeForm
             className={css.bookingForm}
@@ -173,6 +182,9 @@ const BookingPanel = props => {
             <FormattedMessage id="BookingPanel.closedListingButtonText" />
           </div>
         ) : null}
+        {onUpdateWishList && (
+          <AddToWishList onClick={onUpdateWishList} listing={listing} isWishListed={isWishListed} />
+        )}
       </div>
     </div>
   );
@@ -188,6 +200,8 @@ BookingPanel.defaultProps = {
   monthlyTimeSlots: null,
   lineItems: null,
   fetchLineItemsError: null,
+  onUpdateWishList: null,
+  isWishListed: false,
 };
 
 BookingPanel.propTypes = {
@@ -208,6 +222,8 @@ BookingPanel.propTypes = {
   lineItems: array,
   fetchLineItemsInProgress: bool.isRequired,
   fetchLineItemsError: propTypes.error,
+  onUpdateWishList: func,
+  isWishListed: bool,
 
   // from withRouter
   history: shape({

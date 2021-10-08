@@ -49,6 +49,7 @@ import {
   setInitialValues,
   fetchTimeSlots,
   fetchTransactionLineItems,
+  addListingToUserWishList,
 } from './ListingPage.duck';
 import SectionImages from './SectionImages';
 import SectionAvatar from './SectionAvatar';
@@ -204,6 +205,7 @@ export class ListingPageComponent extends Component {
       lineItems,
       fetchLineItemsInProgress,
       fetchLineItemsError,
+      onUpdateWishList,
     } = this.props;
 
     const listingId = new UUID(rawParams.id);
@@ -329,6 +331,10 @@ export class ListingPageComponent extends Component {
       userAndListingAuthorAvailable && currentListing.author.id.uuid === currentUser.id.uuid;
     const showContactUser = authorAvailable && (!currentUser || (currentUser && !isOwnListing));
 
+    const isWishListed = !currentUser
+      ? false
+      : currentUser.attributes.profile?.privateData?.wishList?.includes(rawParams.id);
+
     const currentAuthor = authorAvailable ? currentListing.author : null;
     const ensuredAuthor = ensureUser(currentAuthor);
 
@@ -338,6 +344,30 @@ export class ListingPageComponent extends Component {
     const authorDisplayName = userDisplayNameAsString(ensuredAuthor, '');
 
     const { formattedPrice, priceTitle } = priceData(price, intl);
+
+    const handleUpdateWishList = listingId => {
+      const { currentUser, history, callSetInitialValues, params, location } = this.props;
+
+      if (!currentUser) {
+        const state = { from: `${location.pathname}${location.search}${location.hash}` };
+        // signup and return back to listingPage.
+        history.push(
+          createResourceLocatorString('SignupPage', routeConfiguration(), {}, {}),
+          state
+        );
+      } else if (isOwnListing) {
+        window.scrollTo(0, 0);
+      } else {
+        var wishList;
+        wishList = currentUser.attributes.profile.privateData.wishList || [];
+
+        wishList = !isWishListed
+          ? [...wishList, listingId]
+          : wishList.filter(_id => _id !== listingId);
+
+        onUpdateWishList(wishList);
+      }
+    };
 
     const handleBookingSubmit = values => {
       const isCurrentlyClosed = currentListing.attributes.state === LISTING_STATE_CLOSED;
@@ -445,6 +475,8 @@ export class ListingPageComponent extends Component {
                   <SectionReviews reviews={reviews} fetchReviewsError={fetchReviewsError} />
                 </div>
                 <BookingPanel
+                  isWishListed={isWishListed}
+                  onUpdateWishList={handleUpdateWishList}
                   className={css.bookingPanel}
                   listing={currentListing}
                   isOwnListing={isOwnListing}
@@ -611,6 +643,7 @@ const mapDispatchToProps = dispatch => ({
   onInitializeCardPaymentData: () => dispatch(initializeCardPaymentData()),
   onFetchTimeSlots: (listingId, start, end, timeZone) =>
     dispatch(fetchTimeSlots(listingId, start, end, timeZone)),
+  onUpdateWishList: wishList => dispatch(addListingToUserWishList(wishList)),
 });
 
 // Note: it is important that the withRouter HOC is **outside** the

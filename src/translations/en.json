@@ -91,6 +91,8 @@
   "BookingDateRangeLengthFilter.minDurationLabel": "Minimum length",
   "BookingPanel.closedListingButtonText": "Sorry, this teacher profile is not active anymore.",
   "BookingPanel.ctaButtonMessage": "Request to book",
+  "BookingPanel.ctaAddToWishlist": "+ Add to Wishlist",
+  "BookingPanel.ctaRemoveFromWishlist": "- Remove from Wishlist",
   "BookingPanel.hostedBy": "Hosted by {name}",
   "BookingPanel.perDay": "per day",
   "BookingPanel.perNight": "per night",

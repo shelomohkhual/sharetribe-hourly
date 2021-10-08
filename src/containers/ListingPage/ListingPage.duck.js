@@ -12,7 +12,16 @@ import {
   LISTING_PAGE_DRAFT_VARIANT,
   LISTING_PAGE_PENDING_APPROVAL_VARIANT,
 } from '../../util/urlHelpers';
-import { fetchCurrentUser, fetchCurrentUserHasOrdersSuccess } from '../../ducks/user.duck';
+import {
+  currentUserShowSuccess,
+  fetchCurrentUser,
+  fetchCurrentUserHasOrdersSuccess,
+} from '../../ducks/user.duck';
+import {
+  updateProfileError,
+  updateProfileRequest,
+  updateProfileSuccess,
+} from '../ProfileSettingsPage/ProfileSettingsPage.duck';
 
 const { UUID } = sdkTypes;
 
@@ -366,4 +375,30 @@ export const loadData = (params, search) => dispatch => {
       return responses;
     }
   );
+};
+
+export const addListingToUserWishList = wishList => (dispatch, getState, sdk) => {
+  dispatch(updateProfileRequest());
+
+  const queryParams = {
+    expand: true,
+    include: ['profileImage'],
+    'fields.image': ['variants.square-small', 'variants.square-small2x'],
+  };
+
+  return sdk.currentUser
+    .updateProfile({ privateData: { wishList: wishList } }, queryParams)
+    .then(response => {
+      dispatch(updateProfileSuccess(response));
+
+      const entities = denormalisedResponseEntities(response);
+      if (entities.length !== 1) {
+        throw new Error('Expected a resource in the sdk.currentUser.updateProfile response');
+      }
+      const currentUser = entities[0];
+
+      // Update current user in state.user.currentUser through user.duck.js
+      dispatch(currentUserShowSuccess(currentUser));
+    })
+    .catch(e => dispatch(updateProfileError(storableError(e))));
 };
